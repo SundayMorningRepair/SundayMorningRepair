@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Sunday Morning Repair</title>
+
+<link rel="stylesheet" href="css/stylesheet.css">
+<link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="css/adminportal-panel.css">
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="inventory_tracker.js"></script>
+
+<script>
+google.charts.load('current', { packages: ['table'] });
+
+function drawOrderTable() {
+  const SHEET_ID = "1KgTXKHVIY_xIrdoqLp7OkhZ1huStdWhsBei4WvoClpY";
+  const API_KEY = "AIzaSyBmUJ7MXvBin_ecOuWgSW2jkhdEuwLdw20";
+  const TAB_NAME = "Orders";
+
+  fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${TAB_NAME}?key=${API_KEY}`)
+    .then(res => res.json())
+    .then(data => {
+      console.log("Sheets response:", data);
+
+      if (!data.values) {
+        throw new Error("No values returned. Check spreadsheet ID, tab name, and API access.");
+      }
+
+      const rows = data.values.slice(1);
+
+      const liveOrders = rows.filter(r => {
+        return !r[10] || r[10].toLowerCase() !== "completed";
+      });
+
+      const completedOrders = rows.filter(r => {
+        return r[10] && r[10].toLowerCase() === "completed";
+      });
+
+      let totalRevenue = 0;
+      let totalInstalls = 0;
+	  rows.forEach(r => {
+	  if (r[10] && r[10].toLowerCase() === "completed") {
+		totalRevenue += parseFloat(r[7] || 0);
+		totalInstalls++;
+		}
+	});
+
+      document.getElementById("revenue").innerText = "$" + totalRevenue.toFixed(2);
+      document.getElementById("installs").innerText = totalInstalls;
+
+      const cssClassNames = {
+        headerRow: 'google-table-header',
+        tableRow: 'google-table-row',
+        oddTableRow: 'google-table-row-alt',
+        selectedTableRow: 'google-table-selected',
+        hoverTableRow: 'google-table-hover',
+        headerCell: 'google-table-header-cell',
+        tableCell: 'google-table-cell',
+        rowNumberCell: 'google-table-rownum'
+      };
+
+      function makeOrderDataTable(orderList) {
+        const dt = new google.visualization.DataTable();
+        dt.addColumn('string', 'Order ID');
+        dt.addColumn('string', 'Name');
+        dt.addColumn('string', 'Email');
+        dt.addColumn('string', 'Phone Number');
+        dt.addColumn('string', 'Switch Model');
+        dt.addColumn('string', 'SD Card Upgrade');
+        dt.addColumn('string', 'Extras');
+        dt.addColumn('number', 'Total');
+        dt.addColumn('string', 'Progress');
+        dt.addColumn('string', 'Date');
+        dt.addColumn('string', 'Status');
+		
+		dt.setColumnProperty(6, 'className', 'extras-col');
+
+	   function formatExtrasAsTags(extrasText) {
+  if (!extrasText) return "";
+
+  return extrasText
+    .split(",")
+    .map(item => item.trim())
+    .filter(item => item.length > 0)
+    .map(item => `<div class="extra-tag">[${item}]</div>`)
+    .join("");
+}
+        orderList.forEach(r => {
+  dt.addRow([
+    r[0] || "",
+    r[1] || "",
+    r[2] || "",
+    r[3] || "",
+    r[4] || "",
+    r[5] || "",
+    `<div class="extras-wrap">${formatExtrasAsTags(r[6] || "")}</div>`,
+    parseFloat(r[7] || 0),
+    r[8] || "",
+    r[9] || "",
+    `
+    <select onchange="updateOrderStatus('${r[0]}', this.value)">
+      <option value="Pending" ${r[10] === 'Pending' ? 'selected' : ''}>Pending</option>
+      <option value="In Progress" ${r[10] === 'In Progress' ? 'selected' : ''}>In Progress</option>
+      <option value="Completed" ${r[10] === 'Completed' ? 'selected' : ''}>Completed</option>
+    </select>
+    `
+  ]);
+});
+
+        const formatter = new google.visualization.NumberFormat({
+          prefix: '$',
+          pattern: '#,##0.00',
+          negativeColor: 'red'
+        });
+        formatter.format(dt, 7);
+
+        return dt;
+      }
+
+      const liveDataTable = makeOrderDataTable(liveOrders);
+      const completedDataTable = makeOrderDataTable(completedOrders);
+
+      const liveTable = new google.visualization.Table(document.getElementById('orders_table'));
+      liveTable.draw(liveDataTable, {
+  showRowNumber: true,
+  width: '200%',
+  allowHtml: true,
+  cssClassNames: cssClassNames
+});
+
+      const completedTable = new google.visualization.Table(document.getElementById('completed_orders_table'));
+      completedTable.draw(completedDataTable, {
+        showRowNumber: true,
+        width: '200%',
+        allowHtml: true,
+        cssClassNames: cssClassNames
+      });
+
+      if (completedOrders.length === 0) {
+        document.getElementById('completed_orders_table').innerHTML =
+          "<p style='color:#94a3b8;'>No completed orders found.</p>";
+      }
+    })
+    .catch(err => {
+      console.error("Error loading sheet:", err);
+      document.getElementById("orders_table").innerHTML =
+        "<p style='color:#f87171;'>Failed to load live orders. Check spreadsheet ID, tab name, and API setup.</p>";
+      document.getElementById("completed_orders_table").innerHTML =
+        "<p style='color:#f87171;'>Failed to load completed orders.</p>";
+    });
+}
+
+function initAdmin() {
+  drawOrderTable();
+  updateInventoryAndStats();
+
+  // ✅ Auto refresh every 10 seconds
+  setInterval(() => {
+    drawOrderTable();
+    updateInventoryAndStats();
+  }, 10000);
+}
+
+function updateInventoryAndStats() {
+  // Optional additional stats
+}
+
+google.charts.setOnLoadCallback(initAdmin);
+</script>
+
+<!-- Google Sheets Status Updater -->
+<script>
+function updateOrderStatus(orderId, newStatus) {
+  const scriptURL = "https://script.google.com/macros/s/AKfycbxD9epsAq1rjeNVykY8RRb0xSzDnQQm_NULbGuFsUG8csCxp5-96Cy90l-wjAnD6_2J/exec";
+
+ const formData = new URLSearchParams();
+formData.append("action", "updateStatus");
+formData.append("orderId", orderId);
+formData.append("status", newStatus);
+
+  fetch(scriptURL, {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.text())
+  .then(text => {
+    console.log("Raw Apps Script response:", text);
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      throw new Error("Apps Script did not return valid JSON: " + text);
+    }
+
+    if (data.success) {
+      drawOrderTable();
+    } else {
+      alert("Failed to update status: " + (data.error || "Unknown error"));
+    }
+  })
+  .catch(err => {
+    console.error("Error updating status:", err);
+    alert("Error updating status: " + err.message);
+  });
+}
+</script>
+
+
+</head>
+
+<body data-admin-only="true" data-login-page="login.html">
+
+<div id="header"></div>
+
+
+<div class="admin-layout">
+
+  <aside class="sidebar">
+    <h2>Admin</h2>
+    <button class="nav-btn active" onclick="showSection('orders', this)">Live Orders</button>
+	<button class="nav-btn" onclick="showSection('completed', this)">Completed</button>
+    <button class="nav-btn" onclick="showSection('inventory', this)">Inventory</button>
+    <button class="nav-btn" onclick="showSection('stats', this)">Statistics</button>
+    <button class="nav-btn" onclick="showSection('photos', this)">Photos</button>
+  </aside>
+
+  <div class="main-content">
+
+    <!-- Live Orders Table -->
+    <div class="card section" id="orders">
+      <h2>Live Orders</h2>
+      <p>Sorted automatically from Google Sheet.</p>
+      <div id="orders_table"></div>
+    </div>
+
+	<!-- Completed Orders -->
+	<div class="card section" id="completed">
+		<h2>Completed Orders</h2>
+		<div id="completed_orders_table"></div>
+	</div>
+
+    <!-- Inventory Tracker -->
+	<div class="card section" id="inventory">
+		<div id="inventory-section-content">
+			<p style="color:#94a3b8;">Loading inventory tracker...</p>
+		</div>
+	</div>
+
+    <!-- Business Stats -->
+    <div class="card section" id="stats">
+      <h2>Business Statistics</h2>
+      <div class="grid">
+        <div class="card"><h3>Monthly Revenue</h3><p id="revenue">$0</p></div>
+        <div class="card"><h3>Installs Completed</h3><p id="installs">0</p></div>
+        <div class="card"><h3>Average Turnaround</h3><p id="turnaround">2 Days</p></div>
+      </div>
+    </div>
+
+    <!-- Repair Photo Upload -->
+    <div class="card section" id="photos">
+      <h2>Repair Photo Upload</h2>
+      <input type="file" id="repair_photos" multiple>
+      <button onclick="uploadPhotos()">Upload Photos</button>
+      <p>Photos attach to repair tickets for customers.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<!-- Header + Auth -->
+<!-- Header Script -->
+<script>
+fetch("HTML Links Head - Footer/header.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("header").innerHTML = data;
+
+    // Load auth AFTER header exists
+    const script = document.createElement("script");
+    script.src = "auth.js";
+    document.body.appendChild(script);
+  });
+  
+  fetch("HTML Links Head - Footer/footer.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("footer").innerHTML = data;
+  });
+</script>
+
+<script>
+let inventoryLoaded = false;
+
+async function loadInventoryTracker() {
+  const container = document.getElementById("inventory-section-content");
+  if (!container) return;
+
+  // prevent reloading every click unless you want live re-fetching of the partial
+  if (inventoryLoaded) {
+    if (typeof initInventoryTracker === "function") {
+      initInventoryTracker();
+    }
+    return;
+  }
+
+  try {
+    const res = await fetch("inventory_tracker.html");
+    const html = await res.text();
+    container.innerHTML = html;
+    inventoryLoaded = true;
+
+    if (typeof initInventoryTracker === "function") {
+      initInventoryTracker();
+    }
+  } catch (err) {
+    console.error("Failed to load inventory tracker:", err);
+    container.innerHTML = "<p style='color:#f87171;'>Failed to load inventory tracker.</p>";
+  }
+}
+</script>
+
+<script>
+function showSection(sectionId, clickedButton) {
+  const sections = document.querySelectorAll('.section');
+  const buttons = document.querySelectorAll('.nav-btn');
+
+  sections.forEach(section => {
+    section.style.display = 'none';
+  });
+
+  const activeSection = document.getElementById(sectionId);
+  if (activeSection) {
+    activeSection.style.display = 'block';
+  }
+
+  buttons.forEach(button => {
+    button.classList.remove('active');
+  });
+
+  if (clickedButton) {
+    clickedButton.classList.add('active');
+  }
+
+  if (sectionId === 'inventory') {
+    loadInventoryTracker();
+  }
+}
+</script>
+
+<script src="inventory_tracker.js"></script>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <p>Sunday Morning Repair © 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

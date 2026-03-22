@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunday Morning Repair - Home</title>
+
+<link rel="stylesheet" href="css/stylesheet.css">
+<link rel="stylesheet" href="css/homepage.css">
+
+</head>
+<body>
+
+<!-- Loads Header from header.html -->
+<div id="header"></div>
+
+<section class="hero">
+  <h2>Nintendo Switch Modding & Repairs</h2>
+  <p>Professional modchip installs, repairs, and accessories.</p>
+</section>
+
+<div class="container home-layout">
+
+  <!-- Services Overview -->
+  <section class="card services-card">
+    <h2>Our Services</h2>
+    <div class="services-grid">
+      <div class="storeItem"><h3>Modchip Install</h3><p>Professional solder install with testing.</p></div>
+      <div class="storeItem"><h3>Console Repair</h3><p>Charging ports, screens, fans and more.</p></div>
+      <div class="storeItem"><h3>Thermal Upgrade</h3><p>High quality thermal paste replacement.</p></div>
+      <div class="storeItem"><h3>Rush Service</h3><p>24 hour turnaround option.</p></div>
+    </div>
+  </section>
+
+  <!-- Order Button -->
+  <section class="card order-card">
+    <h2>Place Your Order</h2>
+    <p>Click below to go to the full Order form and customize your Switch mod install.</p>
+    <button onclick="window.location.href='order.html'">Order Install</button>
+  </section>
+
+</div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <p>Sunday Morning Repair © 2026</p>
+  </div>
+</footer>
+
+<!-- Firebase FIRST -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<!-- Header Script -->
+<script>
+fetch("HTML Links Head - Footer/header.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("header").innerHTML = data;
+
+    const script = document.createElement("script");
+    script.src = "auth.js";
+    document.body.appendChild(script);
+  });
+</script>
+
+</body>
+</html>

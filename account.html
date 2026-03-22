@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ===== PAGE SETUP ===== -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Account - Sunday Morning Repair</title>
+
+  <!-- ===== STYLES ===== -->
+  <link rel="stylesheet" href="css/stylesheet.css" />
+  <link rel="stylesheet" href="css/account.css" />
+</head>
+<body data-protected="true" data-login-page="login.html">
+
+  <!-- ===== HEADER PLACEHOLDER ===== -->
+  <div id="header"></div>
+
+  <!-- ===== PAGE TITLE ===== -->
+  <header class="account-page-header">
+    <h1>My Account</h1>
+  </header>
+
+  <!-- ===== ACCOUNT DASHBOARD LAYOUT ===== -->
+  <main class="account-dashboard">
+    <!-- ===== LEFT SIDEBAR ===== -->
+    <aside class="account-sidebar">
+      <h3>Dashboard</h3>
+
+      <button class="account-tab-btn active" data-tab="accountInfoTab">
+        Account Info
+      </button>
+
+      <button class="account-tab-btn" data-tab="ordersTab">
+        My Orders
+      </button>
+
+      <button class="account-tab-btn logout-tab-btn" type="button" onclick="logout()">
+        Logout
+      </button>
+    </aside>
+
+    <!-- ===== RIGHT CONTENT AREA ===== -->
+    <section class="account-main">
+      <!-- ===== ACCOUNT INFO TAB ===== -->
+      <div id="accountInfoTab" class="account-tab-panel active">
+        <div class="account-card">
+          <p id="accountWelcome">Loading account...</p>
+
+          <form id="accountForm">
+            <div class="form-row">
+              <input type="text" id="accountFirstName" placeholder="First Name" />
+              <input type="text" id="accountLastName" placeholder="Last Name" />
+            </div>
+
+            <input type="email" id="accountEmail" placeholder="Email" disabled />
+            <input type="tel" id="accountPhone" placeholder="Phone Number (123-456-7890)" maxlength="12" />
+            <input type="text" id="accountAddress1" placeholder="Address Line 1" />
+            <input type="text" id="accountAddress2" placeholder="Address Line 2" />
+
+            <div class="form-row">
+              <input type="text" id="accountCity" placeholder="City" />
+              <input type="text" id="accountState" placeholder="State" />
+              <input type="text" id="accountZip" placeholder="ZIP Code" />
+            </div>
+
+            <select id="accountContactPreference">
+              <option value="email">Prefer Email</option>
+              <option value="text">Prefer Text</option>
+              <option value="call">Prefer Call</option>
+            </select>
+
+            <div class="account-actions">
+              <button type="submit">Save Changes</button>
+            </div>
+
+            <p id="accountMessage"></p>
+          </form>
+        </div>
+      </div>
+
+      <!-- ===== MY ORDERS TAB ===== -->
+      <div id="ordersTab" class="account-tab-panel">
+        <div class="account-card">
+          <h2>My Orders</h2>
+          <p class="account-section-text">
+            Here you will be able to view current orders, repair updates, notes, and uploaded progress photos.
+          </p>
+
+          <div id="ordersList" class="orders-list">
+            <div class="empty-orders-state">
+              No orders found yet.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER PLACEHOLDER ===== -->
+  <div id="footer"></div>
+
+  <!-- ===== FIREBASE LIBRARIES ===== -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- ===== FIREBASE CONFIG ===== -->
+  <script src="firebase.js"></script>
+
+  <!-- ===== LOAD HEADER / FOOTER ===== -->
+  <script>
+    fetch("HTML Links Head - Footer/header.html")
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("header").innerHTML = data;
+
+        const script = document.createElement("script");
+        script.src = "auth.js";
+        document.body.appendChild(script);
+      });
+
+    fetch("HTML Links Head - Footer/footer.html")
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("footer").innerHTML = data;
+      });
+  </script>
+
+  <!-- ===== TAB SWITCHING ===== -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const tabButtons = document.querySelectorAll(".account-tab-btn[data-tab]");
+      const tabPanels = document.querySelectorAll(".account-tab-panel");
+
+      tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const targetId = button.dataset.tab;
+
+          tabButtons.forEach((btn) => btn.classList.remove("active"));
+          tabPanels.forEach((panel) => panel.classList.remove("active"));
+
+          button.classList.add("active");
+          document.getElementById(targetId).classList.add("active");
+        });
+      });
+    });
+  </script>
+
+  <!-- ===== ACCOUNT PAGE LOGIC ===== -->
+  <script src="account.js"></script>
+</body>
+</html>

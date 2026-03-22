@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order - Sunday Morning Repair</title>
+
+<link rel="stylesheet" href="css/stylesheet.css">
+<link rel="stylesheet" href="css/order - style.css">
+
+
+<script>
+// --- CONFIG ---
+const ORDER_WEBHOOK = "https://script.google.com/macros/s/AKfycbxD9epsAq1rjeNVykY8RRb0xSzDnQQm_NULbGuFsUG8csCxp5-96Cy90l-wjAnD6_2J/exec";
+const STRIPE_CHECKOUT_LINK = "PASTE_STRIPE_LINK";
+
+// --- PRICE UPDATER ---
+function updatePrice() {
+  let total = parseInt(document.getElementById("install").value, 10);
+  total += parseInt(document.getElementById("sdcard").value, 10);
+
+  if (document.getElementById("protector").checked) total += 15;
+  if (document.getElementById("thermal").checked) total += 15;
+  if (document.getElementById("rush").checked) total += 40;
+
+  document.getElementById("totalPrice").innerHTML = "$" + total;
+  document.getElementById("paypalAmount").value = total;
+}
+
+// --- SAVE ORDER ---
+function saveOrder(event) {
+  event.preventDefault();
+
+  const paypalForm = document.getElementById("paypalForm");
+  const paypalBtn = paypalForm.querySelector('button[type="submit"]');
+
+  paypalBtn.disabled = true;
+  paypalBtn.innerText = "Processing...";
+
+  const extras = [];
+  if (document.getElementById("protector").checked) extras.push("Screen Protector");
+  if (document.getElementById("thermal").checked) extras.push("Premium Thermal Paste");
+  if (document.getElementById("rush").checked) extras.push("Rush 24hr Service");
+
+  const data = {
+    name: document.getElementById("custname").value,
+    email: document.getElementById("custemail").value,
+    phone: document.getElementById("custnumber").value,
+    switchModel: document.getElementById("install").options[document.getElementById("install").selectedIndex].text,
+    sdCard: document.getElementById("sdcard").options[document.getElementById("sdcard").selectedIndex].text,
+    extras: extras.join(", "),
+    total: document.getElementById("paypalAmount").value,
+    status: "Awaiting Console",
+    date: new Date().toLocaleString()
+  };
+
+  console.log("Sending order:", data);
+
+const formBody = new URLSearchParams();
+formBody.append("action", "createOrder");
+Object.keys(data).forEach(key => formBody.append(key, data[key]));
+
+fetch(ORDER_WEBHOOK, {
+  method: "POST",
+  body: formBody
+})
+  .then(async res => {
+    const text = await res.text();
+    console.log("Webhook raw response:", text);
+
+    if (!res.ok) {
+      throw new Error("HTTP " + res.status + " - " + text);
+    }
+
+    if (!text) {
+      throw new Error("Empty response from server");
+    }
+
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      throw new Error("Invalid JSON response: " + text);
+    }
+
+    if (!result.success) {
+      throw new Error(result.error || "Unknown server error");
+    }
+
+    document.getElementById("orderid").value = result.orderId;
+    alert("Order submitted! ID: " + result.orderId);
+
+    paypalForm.submit();
+  })
+  .catch(err => {
+    console.error("Error sending order:", err);
+    alert("Error submitting order: " + err.message);
+
+    paypalBtn.disabled = false;
+    paypalBtn.innerText = "Checkout with PayPal";
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  document.getElementById("orderid").value = "Assigned after submission";
+  updatePrice();
+});
+</script>
+
+</head>
+<body>
+
+<div id="header"></div>
+
+<div class="container">
+  <section class="card">
+    <form id="paypalForm" target="paypal" action="https://www.paypal.com/cgi-bin/webscr" method="post" onsubmit="saveOrder(event)">
+  <input type="hidden" name="cmd" value="_cart">
+  <input type="hidden" name="add" value="1">
+  <input type="hidden" name="business" value="">
+  <input type="hidden" name="currency_code" value="USD">
+  <input type="hidden" id="paypalAmount" name="amount" value="160">
+
+  <div class="order-layout">
+    <div class="order-form-column">
+      <label>Order ID</label>
+      <input id="orderid" name="orderID" value="Assigned after submit" readonly>
+
+      <label>Name</label>
+      <input id="custname" name="name" required>
+
+      <label>Email</label>
+      <input id="custemail" name="email" type="email" required>
+
+      <label>Phone Number</label>
+      <input id="custnumber" name="phone" type="tel" required>
+
+      <label>Switch Model</label>
+      <select id="install" name="switchModel" onchange="updatePrice()" required>
+        <option value="160">V1 / V2 Switch - $160</option>
+        <option value="180">OLED Install - $180</option>
+        <option value="170">Lite Install - $170</option>
+      </select>
+
+      <label>SD Card Upgrade</label>
+      <select id="sdcard" name="sdCard" onchange="updatePrice()">
+        <option value="0">No SD Card</option>
+        <option value="20">128GB (+$20)</option>
+        <option value="35">256GB (+$35)</option>
+        <option value="70">512GB (+$70)</option>
+        <option value="120">1TB (+$120)</option>
+      </select>
+
+      <div class="extrasBox">
+        <h3>Extras</h3>
+
+        <label class="extra-option">
+          <input type="checkbox" id="protector" name="extras" value="Screen Protector" onchange="updatePrice()">
+          <span>Screen Protector (+$15)</span>
+        </label>
+
+        <label class="extra-option">
+          <input type="checkbox" id="thermal" name="extras" value="Premium Thermal Paste" onchange="updatePrice()">
+          <span>Premium Thermal Paste (+$15)</span>
+        </label>
+
+        <label class="extra-option">
+          <input type="checkbox" id="rush" name="extras" value="Rush 24hr Service" onchange="updatePrice()">
+          <span>Rush 24hr Service (+$40)</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="checkout-column">
+      <div class="totalBox checkout-sticky">
+        <h2>Total: <span id="totalPrice">$160</span></h2>
+        <button class="checkout" type="submit">Checkout with PayPal</button>
+        <button type="button" class="checkout" onclick="window.location.href=STRIPE_CHECKOUT_LINK">Pay with Card</button>
+      </div>
+    </div>
+  </div>
+</form>
+	
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <p>Sunday Morning Repair © 2026</p>
+  </div>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<!-- Header Script -->
+<script>
+fetch("HTML Links Head - Footer/header.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("header").innerHTML = data;
+
+    // Load auth AFTER header exists
+    const script = document.createElement("script");
+    script.src = "auth.js";
+    document.body.appendChild(script);
+  });
+  
+  fetch("HTML Links Head - Footer/footer.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("footer").innerHTML = data;
+  });
+</script>
+
+</body>
+</html>

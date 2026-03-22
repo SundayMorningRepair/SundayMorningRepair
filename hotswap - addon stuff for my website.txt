@@ -1,0 +1,77 @@
+docs.google.com/spreadsheets/d/1KgTXKHVIY_xIrdoqLp7OkhZ1huStdWhsBei4WvoClpY/gviz/tq?tqx=out:json&gid=0
+
+
+//Add to the CSS of the webpage
+.auth-section {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.login-btn, .logout-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.login-btn:hover, .logout-btn:hover {
+  background: #1d4ed8;
+}
+
+
+//bottom of the webpage
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="auth.js"></script>
+
+//login - logout button
+<div class="auth-section">
+  <span id="userEmail" style="margin-right:10px;font-size:14px;color:#cbd5e1;"></span>
+  <a href="login.html" class="login-btn logged-out-only">Login</a>
+  <button type="button" class="logout-btn logged-in-only" onclick="logout()">Logout</button>
+</div>
+
+//Header div to add at the top of body on each webpage
+<div id="header"></div>
+
+//CSS stylesheet for my website link this in every webpage
+<link rel="stylesheet" href="stylesheet.css">
+
+//test apps script code
+-- Orders - Test - 1 - AKfycbxps753ODW9gGi3RSETMb4PdtB_0t9TW8cnmC1sc77UyPxx5tb_1XNxOlYX1Z_TgHi2
+
+//Footer with the new CSS stylesheet
+<footer class="site-footer">
+  <div class="footer-content">
+    <p>Sunday Morning Repair © 2026</p>
+  </div>
+</footer>
+
+//Footer / Header fetch
+<!-- Header Script -->
+<script>
+fetch("HTML Links Head - Footer/header.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("header").innerHTML = data;
+
+    // Load auth AFTER header exists
+    const script = document.createElement("script");
+    script.src = "auth.js";
+    document.body.appendChild(script);
+  });
+  
+  fetch("HTML Links Head - Footer/footer.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("footer").innerHTML = data;
+  });
+</script>

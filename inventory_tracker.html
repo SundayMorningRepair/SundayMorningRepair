@@ -1,0 +1,57 @@
+<div class="inventory-panel">
+  <div class="inventory-header-row">
+    <h2>Inventory Tracker</h2>
+    <button class="inventory-refresh-btn" onclick="initInventoryTracker()">Refresh</button>
+  </div>
+
+  <div class="inventory-cards">
+    <div class="inventory-card">
+      <h3>Modchips</h3>
+      <p id="inv-modchips">0</p>
+    </div>
+
+    <div class="inventory-card">
+      <h3>SD Cards</h3>
+      <p id="inv-sdcards">0</p>
+    </div>
+
+    <div class="inventory-card">
+      <h3>Screens</h3>
+      <p id="inv-screens">0</p>
+    </div>
+
+    <div class="inventory-card">
+      <h3>Shells</h3>
+      <p id="inv-shells">0</p>
+    </div>
+
+    <div class="inventory-card">
+      <h3>Batteries</h3>
+      <p id="inv-batteries">0</p>
+    </div>
+
+    <div class="inventory-card">
+      <h3>Joy-Con Parts</h3>
+      <p id="inv-joyconparts">0</p>
+    </div>
+  </div>
+
+  <div class="inventory-table-wrap">
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>Item ID</th>
+          <th>Item Name</th>
+          <th>Type</th>
+          <th>Store Price</th>
+          <th>Sold Price</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="inventory-table-body"></tbody>
+    </table>
+  </div>
+</div>

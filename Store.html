@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Store - Sunday Morning Repair</title>
+
+<link rel="stylesheet" href="css/stylesheet.css">
+<link rel="stylesheet" href="css/store-style.css">
+
+</head>
+<body>
+
+<!-- Loads Header from header.html -->
+<div id="header"></div>
+
+<div class="container">
+<section class="grid">
+<div class="storeItem"><h3>256GB MicroSD</h3><p>$35</p><button>Add to Cart</button></div>
+<div class="storeItem"><h3>512GB MicroSD</h3><p>$70</p><button>Add to Cart</button></div>
+<div class="storeItem"><h3>Screen Protector</h3><p>$10</p><button>Add to Cart</button></div>
+<div class="storeItem"><h3>Replacement Fan</h3><p>$18</p><button>Add to Cart</button></div>
+</section>
+</div>
+
+<!-- Header Script -->
+<script>
+fetch("HTML Links Head - Footer/header.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("header").innerHTML = data;
+
+    // Load auth AFTER header exists
+    const script = document.createElement("script");
+    script.src = "auth.js";
+    document.body.appendChild(script);
+  });
+  
+  fetch("HTML Links Head - Footer/footer.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("footer").innerHTML = data;
+  });
+</script>
+
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <p>Sunday Morning Repair © 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

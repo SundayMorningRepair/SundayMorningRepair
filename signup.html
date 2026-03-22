@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account</title>
+  <link rel="stylesheet" href="stylesheet.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Create Your Account</h1>
+
+      <form id="signupForm">
+        <div class="form-row">
+          <input type="text" id="firstName" placeholder="First Name" required />
+          <input type="text" id="lastName" placeholder="Last Name" required />
+        </div>
+
+        <input type="email" id="email" placeholder="Email Address" required />
+        <input type="tel" id="phone" placeholder="Phone Number" required />
+
+        <input type="text" id="address1" placeholder="Address Line 1" />
+        <input type="text" id="address2" placeholder="Address Line 2" />
+        
+        <div class="form-row">
+          <input type="text" id="city" placeholder="City" />
+          <input type="text" id="state" placeholder="State" />
+          <input type="text" id="zip" placeholder="ZIP Code" />
+        </div>
+
+        <select id="contactPreference">
+          <option value="email">Prefer Email</option>
+          <option value="text">Prefer Text</option>
+          <option value="call">Prefer Call</option>
+        </select>
+
+        <input type="password" id="password" placeholder="Password" required />
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+
+        <button type="submit">Create Account</button>
+        <p id="signupMessage"></p>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="signup.js"></script>
+</body>
+</html>

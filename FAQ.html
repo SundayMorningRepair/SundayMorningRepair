@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ - Sunday Morning Repair</title>
+
+<link rel="stylesheet" href="css/stylesheet.css">
+
+</head>
+<body>
+
+<!-- Loads Header from header.html -->
+<div id="header"></div>
+
+<div class="container">
+<section class="card">
+<h2>Frequently Asked Questions</h2>
+<p><b>Turnaround time?</b><br>1–3 days typical.</p>
+<p><b>Payments?</b><br>PayPal or Credit Card.</p>
+</section>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<!-- Header + Auth -->
+<!-- Header Script -->
+<script>
+fetch("HTML Links Head - Footer/header.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("header").innerHTML = data;
+
+    // Load auth AFTER header exists
+    const script = document.createElement("script");
+    script.src = "auth.js";
+    document.body.appendChild(script);
+  });
+  
+  fetch("HTML Links Head - Footer/footer.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("footer").innerHTML = data;
+  });
+</script>
+
+<script>
+function showSection(sectionId, clickedButton) {
+  const sections = document.querySelectorAll('.section');
+  const buttons = document.querySelectorAll('.nav-btn');
+
+  sections.forEach(section => {
+    section.style.display = 'none';
+  });
+
+  const activeSection = document.getElementById(sectionId);
+  if (activeSection) {
+    activeSection.style.display = 'block';
+  }
+
+  buttons.forEach(button => {
+    button.classList.remove('active');
+  });
+
+  if (clickedButton) {
+    clickedButton.classList.add('active');
+  }
+}
+</script>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <p>Sunday Morning Repair © 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>

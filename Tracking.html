@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tracking - Sunday Morning Repair</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;background:#0b1120;color:#e5e7eb;margin:0}
+header{background:#020617;padding:20px;text-align:center;border-bottom:2px solid #1e293b}
+header img{height:70px;margin-bottom:10px}
+header h1{margin:5px 0;color:#38bdf8;font-size:30px}
+nav{margin-top:8px;display:flex;justify-content:center;flex-wrap:wrap}
+nav a{color:#cbd5f5;margin:5px 15px;text-decoration:none;font-size:14px}
+.container{max-width:1000px;margin:auto;padding:30px}
+.card{background:#020617;padding:25px;border-radius:10px;border:1px solid #1e293b;margin-bottom:20px}
+input{width:100%;padding:10px;margin-top:5px;margin-bottom:10px;background:#0f172a;border:1px solid #334155;color:white;border-radius:5px}
+button{padding:12px 20px;background:#0070ba;border:none;border-radius:6px;color:white;cursor:pointer}
+@media(max-width:768px){nav{flex-direction:column}.container{padding:15px}button{width:100%}}
+
+.main-header{
+  background:#020617;
+  padding:50px 20px;
+  border-bottom:2px solid #1e293b;
+}
+
+/* Top row with logo and title */
+.header-top{
+  position:relative;
+  text-align:center;
+  padding-bottom:40px;  /* space between title and nav */
+}
+
+.header-top h1{
+  margin:0;
+  font-size:40px;
+  color:#38bdf8;
+}
+
+/* Logo positioned on the left */
+.logo{
+  position:absolute;
+  left:20px;
+  top:50%;
+  transform:translateY(-50%);
+  height:160px;
+  width:auto;
+}
+
+/* Navigation */
+.main-nav{
+  display:block;
+  margin-top:10px; /* space below title */
+  text-align:center;
+}
+
+.main-nav a{
+  color:#cbd5f5;
+  text-decoration:none;
+  margin:0 15px;  /* horizontal spacing between links */
+  font-size:20px;
+}
+
+.main-nav a:hover{
+  color:#38bdf8;
+}
+</style>
+<script>
+async function lookupOrder() {
+  const id = document.getElementById("portalOrder").value.trim();
+  const output = document.getElementById("portalResult");
+
+  // Replace with your published Google Sheet URL
+  const sheetURL = "https://docs.google.com/spreadsheets/d/gviz/tq?tqx=out:json&gid=0";
+
+  try {
+    const res = await fetch(sheetURL);
+    let text = await res.text();
+
+    // Remove Google wrapper
+    text = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
+    const data = JSON.parse(text);
+
+    // Google Sheets stores rows in data.table.rows
+    const orders = data.table.rows.map(row => {
+      return {
+        OrderID: row.c[0] ? row.c[0].v : "",
+        Customer: row.c[1] ? row.c[1].v : "",
+        Status: row.c[2] ? row.c[2].v : "",
+        Date: row.c[3] ? row.c[3].v : ""
+      };
+    });
+
+    const result = orders.find(o => o.OrderID === id);
+
+    if (result) {
+      output.innerHTML = `<strong>Order ID:</strong> ${result.OrderID}<br>
+                          <strong>Customer:</strong> ${result.Customer}<br>
+                          <strong>Status:</strong> ${result.Status}<br>
+                          <strong>Date:</strong> ${result.Date}`;
+    } else {
+      output.innerHTML = "<strong>No order found with that ID.</strong>";
+    }
+
+  } catch (err) {
+    console.error(err);
+    output.innerHTML = "<strong>Error fetching order data.</strong>";
+  }
+}
+</script>
+</head>
+<body>
+<header class="main-header">
+
+  <div class="header-top">
+    <img src="images/sm repair logo test - 2.png" alt="Logo" class="logo">
+    <h1>Sunday Morning Repair</h1>
+  </div>
+
+  <nav>
+    <a href="index.html">Home</a> |
+    <a href="order.html">Order</a> |
+    <a href="services.html">Services</a> |
+    <a href="mailin.html">Mail-In Guide</a> |
+    <a href="store.html">Store</a> |
+    <a href="tracking.html">Tracking</a> |
+    <a href="faq.html">FAQ</a> |
+    <a href="SMR - Admin Portal 2.html">Admin</a> |
+	<a href="Login - Signup.html">Login / Signup</a> |
+  </nav>
+
+</header>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="auth.js"></script>
+
+<div class="container">
+<section class="card">
+<h2>Customer Repair Portal</h2>
+<input id="portalOrder" placeholder="Enter Order ID">
+<button onclick="lookupOrder()">Check Repair Status</button>
+<p id="portalResult"></p>
+</section>
+</div>
+
+<footer>
+<center>Sunday Morning Repair © 2026</center>
+</footer>
+</body>
+</html>
